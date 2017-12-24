@@ -10,6 +10,7 @@ import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -19,7 +20,7 @@ import com.google.firebase.auth.FirebaseAuth;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private TextInputLayout mLoginEmail, mLoginPassword;
+    private EditText mLoginEmail, mLoginPassword;
     private Button mLoginBtn;
     private FirebaseAuth mAuth;
     private Toolbar mToolbar;
@@ -46,11 +47,12 @@ public class LoginActivity extends AppCompatActivity {
         getSupportActionBar().setTitle("Login");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+
         mLoginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String email = mLoginEmail.getEditText().toString();
-                String password = mLoginPassword.getEditText().toString();
+                String email = mLoginEmail.getText().toString();
+                String password = mLoginPassword.getText().toString();
 
                 if (!TextUtils.isEmpty(email) || !TextUtils.isEmpty(password)){
 

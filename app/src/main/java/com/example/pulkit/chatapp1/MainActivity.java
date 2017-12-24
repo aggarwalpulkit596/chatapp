@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-        getMenuInflater().inflate(R.menu.main_menu,menu);
+        getMenuInflater().inflate(R.menu.main_menu, menu);
 
         return true;
     }
@@ -58,13 +58,16 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         super.onOptionsItemSelected(item);
 
-        if (item.getItemId() ==  R.id.main_logout_btn){
+        if (item.getItemId() == R.id.main_logout_btn) {
             FirebaseAuth.getInstance().signOut();
-            startActivity(new Intent(this,MainActivity.class));
+            startActivity(new Intent(this, MainActivity.class));
+        }
+        if (item.getItemId() == R.id.main_settings_btn){
+            startActivity(new Intent(this, SettingsActivity.class));
 
         }
 
-        return true;
+            return true;
     }
 
     @Override
@@ -73,8 +76,8 @@ public class MainActivity extends AppCompatActivity {
         // Check if user is signed in (non-null) and update UI accordingly.
         FirebaseUser currentUser = mAuth.getCurrentUser();
         //  updateUI(currentUser);
-        if(currentUser == null){
-            startActivity(new Intent(MainActivity.this,StartActivity.class));
+        if (currentUser == null) {
+            startActivity(new Intent(MainActivity.this, StartActivity.class));
         }
     }
 }

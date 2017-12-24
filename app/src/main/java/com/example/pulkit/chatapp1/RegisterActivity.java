@@ -11,6 +11,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -26,7 +27,7 @@ import java.util.Map;
 
 public class RegisterActivity extends AppCompatActivity {
 
-    private TextInputLayout mEmail, mPassword, mDisplayName;
+    private EditText mEmail, mPassword, mDisplayName;
     private Button mCreateBtn;
     private FirebaseAuth mAuth;
     private Toolbar mToolbar;
@@ -58,9 +59,9 @@ public class RegisterActivity extends AppCompatActivity {
         mCreateBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String display_name = mDisplayName.getEditText().toString();
-                String email = mEmail.getEditText().toString();
-                String password = mPassword.getEditText().toString();
+                String display_name = mDisplayName.getText().toString();
+                String email = mEmail.getText().toString();
+                String password = mPassword.getText().toString();
 
                 if (!TextUtils.isEmpty(display_name) || !TextUtils.isEmpty(email) || !TextUtils.isEmpty(password)) {
                     mRegProcess.setTitle("Registering User");
