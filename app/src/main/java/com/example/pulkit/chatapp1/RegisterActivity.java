@@ -33,7 +33,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     private ProgressDialog mRegProcess;
 
-    private DocumentReference mDatabase;
+    private FirebaseFirestore mDatabase;
 
 
     @Override
@@ -46,6 +46,7 @@ public class RegisterActivity extends AppCompatActivity {
         mPassword = findViewById(R.id.reg_password);
         mDisplayName = findViewById(R.id.reg_display_name);
         mAuth = FirebaseAuth.getInstance();
+        mDatabase = FirebaseFirestore.getInstance();
 
         mRegProcess = new ProgressDialog(this);
 
@@ -86,15 +87,14 @@ public class RegisterActivity extends AppCompatActivity {
 
                             String uid = current_user.getUid();
 
-                            mDatabase = FirebaseFirestore.getInstance().document("users/" + uid);
-
                             Map<String, String> userMap = new HashMap<>();
                             userMap.put("name", display_name);
                             userMap.put("status", "Hey there,I am using Chatapp");
                             userMap.put("image", "default");
                             userMap.put("thumb_image", "default");
 
-                            mDatabase.set(userMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            mDatabase.collection("users").document(uid)
+                                    .set(userMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
                                     if (task.isSuccessful()) {
