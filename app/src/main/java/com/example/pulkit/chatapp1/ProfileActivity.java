@@ -12,6 +12,7 @@ import android.widget.Toast;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -44,6 +45,7 @@ public class ProfileActivity extends AppCompatActivity {
         setContentView(R.layout.activity_profile);
 
         final String user_id = getIntent().getStringExtra("user_id");
+        mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
         current_uid = mCurrentUser.getUid();
 
 
@@ -59,7 +61,7 @@ public class ProfileActivity extends AppCompatActivity {
         mFriendReqDatabse = FirebaseFirestore.getInstance();
 
 
-        mUserDatabase.collection("users").document(current_uid).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+        mUserDatabase.collection("users").document(user_id).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                 if (documentSnapshot.exists()) {
@@ -82,8 +84,10 @@ public class ProfileActivity extends AppCompatActivity {
                     mFriendReqDatabse.collection("friend_requests").document(current_uid).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                         @Override
                         public void onSuccess(DocumentSnapshot documentSnapshot) {
-
-//                            if(documentSnapshot.exists())
+//
+//                            if(documentSnapshot.getDocumentReference()){
+//
+//                            }
                         }
                     });
 
