@@ -30,7 +30,7 @@ dependencies {
     compile 'de.hdodenhof:circleimageview:2.2.0'
     compile 'com.theartofdev.edmodo:android-image-cropper:2.6.+'
     compile 'com.squareup.picasso:picasso:2.5.2'
-    implementation 'com.firebaseui:firebase-ui-database:3.1.2'
+    implementation 'com.firebaseui:firebase-ui-firestore:3.1.2'
     compile 'id.zelory:compressor:2.1.0'
 
     compile 'com.google.firebase:firebase-firestore:11.6.2'
@@ -38,6 +38,7 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
 }
+
 
 
 
