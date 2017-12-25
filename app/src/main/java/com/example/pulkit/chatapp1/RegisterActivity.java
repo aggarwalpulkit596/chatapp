@@ -83,7 +83,20 @@ public class RegisterActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<AuthResult> task) {
 
                         if (task.isSuccessful()) {
-
+//                            String error = "";
+//                            try {
+//                                throw task.getException();
+//                            } catch (FirebaseAuthWeakPasswordException e) {
+//                                error = "Weak Password!";
+//                            } catch (FirebaseAuthInvalidCredentialsException e) {
+//                                error = "Invalid Email";
+//                            } catch (FirebaseAuthUserCollisionException e) {
+//                                error = "Existing account!";
+//                            } catch (Exception e) {
+//                                error = "Unknow error!";
+//                                e.printStackTrace();
+//                            }
+//                            Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
                             FirebaseUser current_user = FirebaseAuth.getInstance().getCurrentUser();
 
                             String uid = current_user.getUid();
