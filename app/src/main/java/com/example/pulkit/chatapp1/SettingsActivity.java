@@ -23,6 +23,8 @@ import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
@@ -75,8 +77,9 @@ public class SettingsActivity extends AppCompatActivity {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                 if (documentSnapshot.exists()) {
+                    documentSnapshot.getMetadata().isFromCache();
                     String name = documentSnapshot.getString("name");
-                    String image = documentSnapshot.getString("image");
+                    final String image = documentSnapshot.getString("image");
                     String thumb_image = documentSnapshot.getString("thumb_image");
                     String status = documentSnapshot.getString("status");
 
@@ -86,8 +89,26 @@ public class SettingsActivity extends AppCompatActivity {
                     if (!image.equals("default"))
                         Picasso.with(SettingsActivity.this)
                                 .load(image)
+                                .networkPolicy(NetworkPolicy.OFFLINE)
                                 .placeholder(R.drawable.default_avatar)
-                                .into(mImage);
+                                .into(mImage, new Callback() {
+                                    @Override
+                                    public void onSuccess() {
+
+                                    }
+
+                                    @Override
+                                    public void onError() {
+
+                                        if (!image.equals("default"))
+                                            Picasso.with(SettingsActivity.this)
+                                                    .load(image)
+                                                    .placeholder(R.drawable.default_avatar)
+                                                    .into(mImage);
+
+                                    }
+                                });
+
 
                 }
 
