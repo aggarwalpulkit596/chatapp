@@ -1,5 +1,6 @@
 package com.example.pulkit.chatapp1;
 
+import android.app.ProgressDialog;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -33,13 +34,16 @@ public class ProfileActivity extends AppCompatActivity {
     private FirebaseFirestore mUserDatabase, mFriendReqDatabse, mFriendsDatabase;
     private FirebaseUser mCurrentUser;
 
+
+    //Views
     private ImageView mProfileImage;
     private TextView mProfileStatus, mProfileName, mProfileFriendsCount;
-    private Button mProfileReqBtn,mDeclineReqBtn;
+    private Button mProfileReqBtn, mDeclineReqBtn;
 
     private String mCurrent_State;
-
     private String current_uid;
+
+    private ProgressDialog mLoadProcess;
 
     private static final String TAG = "DEBUGGING";
 
@@ -50,41 +54,23 @@ public class ProfileActivity extends AppCompatActivity {
         setContentView(R.layout.activity_profile);
 
         final String user_id = getIntent().getStringExtra("user_id");
-        mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
-        current_uid = mCurrentUser.getUid();
 
+        bindingviews();
 
-        mProfileImage = findViewById(R.id.profile_image);
-        mProfileName = findViewById(R.id.profile_displayname);
-        mProfileStatus = findViewById(R.id.profile_status);
-        mProfileFriendsCount = findViewById(R.id.profile_totalfriends);
-        mProfileReqBtn = findViewById(R.id.profile_sendrequest);
-        mDeclineReqBtn = findViewById(R.id.profile_decline);
-
-        mCurrent_State = "not friends";
-
-        mUserDatabase = FirebaseFirestore.getInstance();
-        mFriendReqDatabse = FirebaseFirestore.getInstance();
-        mFriendsDatabase = FirebaseFirestore.getInstance();
+        mLoadProcess = new ProgressDialog(this);
+        mLoadProcess.setTitle("Getting Info");
+        mLoadProcess.setMessage("PLease Wait...");
+        mLoadProcess.setCanceledOnTouchOutside(false);
+        mLoadProcess.show();
 
 
         mUserDatabase.collection("users").document(user_id).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                 if (documentSnapshot.exists()) {
-                    String name = documentSnapshot.getString("name");
-                    String image = documentSnapshot.getString("image");
-                    String thumb_image = documentSnapshot.getString("thumb_image");
-                    String status = documentSnapshot.getString("status");
 
-                    mProfileName.setText(name);
-                    mProfileStatus.setText(status);
 
-                    if (!image.equals("default"))
-                        Picasso.with(ProfileActivity.this)
-                                .load(image)
-                                .placeholder(R.drawable.default_avatar)
-                                .into(mProfileImage);
+                    bindData(documentSnapshot);
 
 
                     //----------FRIEND LIST/REQUEST --------------
@@ -105,42 +91,42 @@ public class ProfileActivity extends AppCompatActivity {
 
                                     mDeclineReqBtn.setVisibility(View.VISIBLE);
                                     mDeclineReqBtn.setEnabled(true);
-                                } else if (req_type.equals("req_sent")) {
-
+                                    mLoadProcess.hide();
+                                } else if (req_type.equals("sent")) {
+                                    Log.i(TAG, "onSuccess:");
                                     mCurrent_State = "req_sent";
                                     mProfileReqBtn.setText("Cancel Friend Request");
                                     mDeclineReqBtn.setVisibility(View.INVISIBLE);
                                     mDeclineReqBtn.setEnabled(false);
+                                    mLoadProcess.hide();
                                 }
-                            }else{
+                            } else {
                                 mFriendsDatabase.collection("friends").document(current_uid).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                                     @Override
                                     public void onSuccess(DocumentSnapshot documentSnapshot) {
-                                        if(documentSnapshot.exists() && documentSnapshot.contains(user_id)){
+                                        if (documentSnapshot.exists() && documentSnapshot.contains(user_id)) {
 
                                             mCurrent_State = "friends";
                                             mProfileReqBtn.setText("Unfriend");
 
                                             mDeclineReqBtn.setVisibility(View.INVISIBLE);
                                             mDeclineReqBtn.setEnabled(false);
+                                            mLoadProcess.hide();
                                         }
                                     }
                                 });
                             }
-
                         }
                     });
 
-
                 }
-
             }
         });
 
         mProfileReqBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                mLoadProcess.show();
                 mProfileReqBtn.setEnabled(false);
 
                 //-----------------NOT FRIENDS STATE---------
@@ -171,12 +157,15 @@ public class ProfileActivity extends AppCompatActivity {
 
                                         mDeclineReqBtn.setVisibility(View.INVISIBLE);
                                         mDeclineReqBtn.setEnabled(false);
+                                        mLoadProcess.hide();
 
                                         Toast.makeText(ProfileActivity.this, "Request Sent Successfully", Toast.LENGTH_SHORT).show();
                                     }
                                 });
                             } else {
                                 Toast.makeText(ProfileActivity.this, "Failed Sending Request", Toast.LENGTH_SHORT).show();
+                                mLoadProcess.hide();
+
                             }
                             mProfileReqBtn.setEnabled(true);
 
@@ -205,6 +194,8 @@ public class ProfileActivity extends AppCompatActivity {
 
                                     mDeclineReqBtn.setVisibility(View.INVISIBLE);
                                     mDeclineReqBtn.setEnabled(false);
+                                    mLoadProcess.hide();
+
                                 }
                             });
                         }
@@ -252,6 +243,8 @@ public class ProfileActivity extends AppCompatActivity {
 
                                                                     mDeclineReqBtn.setVisibility(View.INVISIBLE);
                                                                     mDeclineReqBtn.setEnabled(false);
+                                                                    mLoadProcess.hide();
+
                                                                 }
                                                             });
                                                         }
@@ -269,5 +262,46 @@ public class ProfileActivity extends AppCompatActivity {
 
 
         });
+    }
+
+    private void bindData(DocumentSnapshot documentSnapshot) {
+
+        String name = documentSnapshot.getString("name");
+        String image = documentSnapshot.getString("image");
+        String thumb_image = documentSnapshot.getString("thumb_image");
+        String status = documentSnapshot.getString("status");
+
+        mProfileName.setText(name);
+        mProfileStatus.setText(status);
+
+        if (!image.equals("default"))
+            Picasso.with(ProfileActivity.this)
+                    .load(image)
+                    .placeholder(R.drawable.default_avatar)
+                    .into(mProfileImage);
+
+    }
+
+    private void bindingviews() {
+
+        //binding Views
+        mProfileImage = findViewById(R.id.profile_image);
+        mProfileName = findViewById(R.id.profile_displayname);
+        mProfileStatus = findViewById(R.id.profile_status);
+        mProfileFriendsCount = findViewById(R.id.profile_totalfriends);
+        mProfileReqBtn = findViewById(R.id.profile_sendrequest);
+        mDeclineReqBtn = findViewById(R.id.profile_decline);
+
+
+        //Firebase Instance
+        mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
+        mUserDatabase = FirebaseFirestore.getInstance();
+        mFriendReqDatabse = FirebaseFirestore.getInstance();
+        mFriendsDatabase = FirebaseFirestore.getInstance();
+
+        //Constants
+        current_uid = mCurrentUser.getUid();
+        mCurrent_State = "not friends";
+
     }
 }

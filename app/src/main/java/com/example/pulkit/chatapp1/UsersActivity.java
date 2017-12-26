@@ -17,6 +17,8 @@ import android.widget.TextView;
 
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -36,6 +38,10 @@ public class UsersActivity extends AppCompatActivity {
 
     private TextView mEmptyListMessage;
 
+    private String current_uid;
+    private FirebaseUser mCurrentUser;
+
+
     private static final String TAG = "debugging";
 
 
@@ -48,6 +54,9 @@ public class UsersActivity extends AppCompatActivity {
         setSupportActionBar(mToolbar);
         getSupportActionBar().setTitle("All Users");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
+        current_uid = mCurrentUser.getUid();
 
 
         mRecyclerView = findViewById(R.id.users_list);
@@ -82,28 +91,28 @@ public class UsersActivity extends AppCompatActivity {
 
             @Override
             protected void onBindViewHolder(@NonNull UsersViewHolder holder, int position, @NonNull Users model) {
-
-                holder.bind(model, getApplicationContext());
                 final String user_id = getSnapshots().getSnapshot(position).getId();
+                if (!user_id.equals(current_uid)) {
+                    holder.bind(model, getApplicationContext());
 
-                holder.mView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-
-
-                        Intent profileintent = new Intent(UsersActivity.this, ProfileActivity.class);
-                        profileintent.putExtra("user_id", user_id);
-                        startActivity(profileintent);
+                    holder.mView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
 
 
-                    }
-                });
+                            Intent profileintent = new Intent(UsersActivity.this, ProfileActivity.class);
+                            profileintent.putExtra("user_id", user_id);
+                            startActivity(profileintent);
+
+
+                        }
+                    });
+                }
 
             }
 
             @Override
             public int getItemCount() {
-                Log.i(TAG, "onStart: " + super.getItemCount());
 
                 return super.getItemCount();
 
