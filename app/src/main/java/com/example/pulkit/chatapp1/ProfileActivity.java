@@ -16,7 +16,8 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -32,6 +33,7 @@ public class ProfileActivity extends AppCompatActivity {
 
     //Firebase
     private FirebaseFirestore mUserDatabase, mFriendReqDatabse, mFriendsDatabase;
+    private DatabaseReference mNotificationDatabase;
     private FirebaseUser mCurrentUser;
 
 
@@ -152,14 +154,22 @@ public class ProfileActivity extends AppCompatActivity {
                                     @Override
                                     public void onSuccess(Void aVoid) {
 
-                                        mCurrent_State = "req_sent";
-                                        mProfileReqBtn.setText(R.string.Cancelfriendreq);
+                                        HashMap<String, String> notificationData = new HashMap<>();
+                                        notificationData.put("from", current_uid);
+                                        notificationData.put("type", "request");
 
-                                        mDeclineReqBtn.setVisibility(View.INVISIBLE);
-                                        mDeclineReqBtn.setEnabled(false);
-                                        mLoadProcess.hide();
+                                        mNotificationDatabase.child(user_id).push().setValue(notificationData).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(Void aVoid) {
+                                                mCurrent_State = "req_sent";
+                                                mProfileReqBtn.setText(R.string.Cancelfriendreq);
 
-                                        Toast.makeText(ProfileActivity.this, "Request Sent Successfully", Toast.LENGTH_SHORT).show();
+                                                mDeclineReqBtn.setVisibility(View.INVISIBLE);
+                                                mDeclineReqBtn.setEnabled(false);
+                                                mLoadProcess.hide();
+                                            }
+                                        });
+//                                        Toast.makeText(ProfileActivity.this, "Request Sent Successfully", Toast.LENGTH_SHORT).show();
                                     }
                                 });
                             } else {
@@ -298,6 +308,8 @@ public class ProfileActivity extends AppCompatActivity {
         mUserDatabase = FirebaseFirestore.getInstance();
         mFriendReqDatabse = FirebaseFirestore.getInstance();
         mFriendsDatabase = FirebaseFirestore.getInstance();
+        mNotificationDatabase = FirebaseDatabase.getInstance().getReference().child("notifications");
+//        mNotificationDatabase = FirebaseFirestore.getInstance().collection("notifications").document(c)
 
         //Constants
         current_uid = mCurrentUser.getUid();
