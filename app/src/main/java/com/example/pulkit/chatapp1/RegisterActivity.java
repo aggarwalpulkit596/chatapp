@@ -19,8 +19,11 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,7 +37,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     private ProgressDialog mRegProcess;
 
-    private FirebaseFirestore mDatabase;
+    private DatabaseReference mDatabase;
 
 
     @Override
@@ -47,7 +50,6 @@ public class RegisterActivity extends AppCompatActivity {
         mPassword = findViewById(R.id.reg_password);
         mDisplayName = findViewById(R.id.reg_display_name);
         mAuth = FirebaseAuth.getInstance();
-        mDatabase = FirebaseFirestore.getInstance();
 
         mRegProcess = new ProgressDialog(this);
 
@@ -100,15 +102,20 @@ public class RegisterActivity extends AppCompatActivity {
                             FirebaseUser current_user = FirebaseAuth.getInstance().getCurrentUser();
 
                             String uid = current_user.getUid();
+                            String device_token = FirebaseInstanceId.getInstance().getToken();
+
+                            mDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(uid);
+
 
                             Map<String, String> userMap = new HashMap<>();
                             userMap.put("name", display_name);
                             userMap.put("status", "Hey there,I am using Chatapp");
                             userMap.put("image", "default");
                             userMap.put("thumb_image", "default");
+                            userMap.put("device_token",device_token);
 
-                            mDatabase.collection("users").document(uid)
-                                    .set(userMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            mDatabase.setValue(userMap)
+                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
                                     if (task.isSuccessful()) {

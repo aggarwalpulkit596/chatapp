@@ -15,16 +15,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
-import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
+
+import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.squareup.picasso.Picasso;
 
-import java.lang.ref.Reference;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -34,12 +34,7 @@ public class UsersActivity extends AppCompatActivity {
 
     private RecyclerView mRecyclerView;
 
-    private FirestoreRecyclerAdapter adapter;
-
-    private TextView mEmptyListMessage;
-
-    private String current_uid;
-    private FirebaseUser mCurrentUser;
+    private DatabaseReference mUsersDatabase;
 
 
     private static final String TAG = "debugging";
@@ -55,15 +50,13 @@ public class UsersActivity extends AppCompatActivity {
         getSupportActionBar().setTitle("All Users");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
-        current_uid = mCurrentUser.getUid();
+
+        mUsersDatabase = FirebaseDatabase.getInstance().getReference().child("Users");
 
 
         mRecyclerView = findViewById(R.id.users_list);
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        mEmptyListMessage = findViewById(R.id.emptyTextView);
 
 
     }
@@ -77,13 +70,14 @@ public class UsersActivity extends AppCompatActivity {
     }
 
     private void attachRecyclerViewAdapter() {
-
-        Query query = FirebaseFirestore.getInstance()
-                .collection("users");
-        FirestoreRecyclerOptions<Users> options = new FirestoreRecyclerOptions.Builder<Users>()
-                .setQuery(query, Users.class)
-                .build();
-        adapter = new FirestoreRecyclerAdapter<Users, UsersViewHolder>(options) {
+        Query query = FirebaseDatabase.getInstance()
+                .getReference()
+                .child("users");
+        FirebaseRecyclerOptions<Users> options =
+                new FirebaseRecyclerOptions.Builder<Users>()
+                        .setQuery(query, Users.class)
+                        .build();
+        FirebaseRecyclerAdapter<Users, UsersViewHolder> firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<Users, UsersViewHolder>(options) {
             @Override
             public UsersViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
                 return new UsersViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.user_layout, parent, false));
@@ -91,41 +85,31 @@ public class UsersActivity extends AppCompatActivity {
 
             @Override
             protected void onBindViewHolder(@NonNull UsersViewHolder holder, int position, @NonNull Users model) {
-                final String user_id = getSnapshots().getSnapshot(position).getId();
-                if (!user_id.equals(current_uid)) {
-                    holder.bind(model, getApplicationContext());
+                holder.bind(model, getApplicationContext());
 
-                    holder.mView.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
+                final String user_id = getRef(position).getKey();
 
-
-                            Intent profileintent = new Intent(UsersActivity.this, ProfileActivity.class);
-                            profileintent.putExtra("user_id", user_id);
-                            startActivity(profileintent);
+                holder.mView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
 
 
-                        }
-                    });
-                }
+                        Intent profileintent = new Intent(UsersActivity.this, ProfileActivity.class);
+                        profileintent.putExtra("user_id", user_id);
+                        startActivity(profileintent);
 
-            }
 
-            @Override
-            public int getItemCount() {
+                    }
+                });
 
-                return super.getItemCount();
 
-            }
-
-            @Override
-            public void onDataChanged() {
-                mEmptyListMessage.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
             }
         };
-        mRecyclerView.setAdapter(adapter);
-        adapter.startListening();
+        mRecyclerView.setAdapter(firebaseRecyclerAdapter);
+
+
     }
+
 
     public static class UsersViewHolder extends RecyclerView.ViewHolder {
 
@@ -164,4 +148,5 @@ public class UsersActivity extends AppCompatActivity {
         }
     }
 }
+
 

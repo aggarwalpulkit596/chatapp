@@ -17,6 +17,11 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
@@ -41,14 +46,14 @@ import id.zelory.compressor.Compressor;
 
 public class SettingsActivity extends AppCompatActivity {
 
-    private FirebaseFirestore mUserDatabase;
+    private DatabaseReference mUserDatabase;
     private FirebaseUser mCurrentUser;
 
 
     private CircleImageView mImage;
     private TextView mName;
     private TextView mStatus;
-    private Button mImageBtn;
+    private Button mImageBtn,mStatusBtn;
 
     private StorageReference mStorageRef;
 
@@ -66,54 +71,69 @@ public class SettingsActivity extends AppCompatActivity {
         mName = findViewById(R.id.settings_displayname);
         mStatus = findViewById(R.id.settings_status);
         mImageBtn = findViewById(R.id.setting_image_btn);
-
-        mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
-        mUserDatabase = FirebaseFirestore.getInstance();
-        mStorageRef = FirebaseStorage.getInstance().getReference();
+        mStatusBtn = findViewById(R.id.setting_status_btn);
 
         String current_uid = mCurrentUser.getUid();
 
-        mUserDatabase.collection("users").document(current_uid).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+        mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
+        mUserDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(current_uid);
+        mUserDatabase.keepSynced(true);
+        mStorageRef = FirebaseStorage.getInstance().getReference();
+
+        mUserDatabase.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onSuccess(DocumentSnapshot documentSnapshot) {
-                if (documentSnapshot.exists()) {
-                    documentSnapshot.getMetadata().isFromCache();
-                    String name = documentSnapshot.getString("name");
-                    final String image = documentSnapshot.getString("image");
-                    String thumb_image = documentSnapshot.getString("thumb_image");
-                    String status = documentSnapshot.getString("status");
+            public void onDataChange(DataSnapshot documentSnapshot) {
+                String name = documentSnapshot.child("name").getValue().toString();
+                final String image = documentSnapshot.child("image").getValue().toString();
+                String thumb_image = documentSnapshot.child("thumb_image").getValue().toString();
+                String status = documentSnapshot.child("status").getValue().toString();
 
-                    mName.setText(name);
-                    mStatus.setText(status);
+                mName.setText(name);
+                mStatus.setText(status);
 
-                    if (!image.equals("default"))
-                        Picasso.with(SettingsActivity.this)
-                                .load(image)
-                                .networkPolicy(NetworkPolicy.OFFLINE)
-                                .placeholder(R.drawable.default_avatar)
-                                .into(mImage, new Callback() {
-                                    @Override
-                                    public void onSuccess() {
+                if (!image.equals("default"))
+                    Picasso.with(SettingsActivity.this)
+                            .load(image)
+                            .networkPolicy(NetworkPolicy.OFFLINE)
+                            .placeholder(R.drawable.default_avatar)
+                            .into(mImage, new Callback() {
+                                @Override
+                                public void onSuccess() {
 
-                                    }
+                                }
 
-                                    @Override
-                                    public void onError() {
+                                @Override
+                                public void onError() {
 
-                                        if (!image.equals("default"))
-                                            Picasso.with(SettingsActivity.this)
-                                                    .load(image)
-                                                    .placeholder(R.drawable.default_avatar)
-                                                    .into(mImage);
+                                    if (!image.equals("default"))
+                                        Picasso.with(SettingsActivity.this)
+                                                .load(image)
+                                                .placeholder(R.drawable.default_avatar)
+                                                .into(mImage);
 
-                                    }
-                                });
+                                }
+                            });
 
+            }
 
-                }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
 
             }
         });
+        mStatusBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                String status_value = mStatus.getText().toString();
+
+                Intent status_intent = new Intent(SettingsActivity.this, StatusActivity.class);
+                status_intent.putExtra("status_value", status_value);
+                startActivity(status_intent);
+
+            }
+        });
+
 
         mImageBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -195,7 +215,7 @@ public class SettingsActivity extends AppCompatActivity {
                                         imageData.put("image", download_url);
                                         imageData.put("thumb_image", thumb_downloadurl);
 
-                                        mUserDatabase.collection("users").document(current_userid).set(imageData, SetOptions.merge()).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        mUserDatabase.updateChildren(imageData).addOnCompleteListener(new OnCompleteListener<Void>() {
                                             @Override
                                             public void onComplete(@NonNull Task<Void> task) {
                                                 if (task.isSuccessful()) {

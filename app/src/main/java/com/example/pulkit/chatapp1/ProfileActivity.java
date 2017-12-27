@@ -25,14 +25,16 @@ import com.google.firebase.firestore.SetOptions;
 import com.squareup.picasso.Picasso;
 
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class ProfileActivity extends AppCompatActivity {
 
     //Firebase
-    private FirebaseFirestore mUserDatabase, mFriendReqDatabse, mFriendsDatabase;
+    private FirebaseFirestore mUserDatabase, mFriendReqDatabse, mFriendsDatabase,NotificationDatabase;
     private DatabaseReference mNotificationDatabase;
     private FirebaseUser mCurrentUser;
 
@@ -71,9 +73,7 @@ public class ProfileActivity extends AppCompatActivity {
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                 if (documentSnapshot.exists()) {
 
-
                     bindData(documentSnapshot);
-
 
                     //----------FRIEND LIST/REQUEST --------------
                     mFriendReqDatabse.collection("friend_requests").document(current_uid).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
@@ -122,7 +122,9 @@ public class ProfileActivity extends AppCompatActivity {
                     });
 
                 }
+                mLoadProcess.hide();
             }
+
         });
 
         mProfileReqBtn.setOnClickListener(new View.OnClickListener() {
@@ -153,12 +155,16 @@ public class ProfileActivity extends AppCompatActivity {
                                         .set(Data, SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
                                     @Override
                                     public void onSuccess(Void aVoid) {
+//                                        String nid = NotificationDatabase.collection("notifications").document(user_id).
 
-                                        HashMap<String, String> notificationData = new HashMap<>();
+
+                                        Map<String, String> notificationData = new HashMap<>();
                                         notificationData.put("from", current_uid);
                                         notificationData.put("type", "request");
+                                        Map<Integer, Object> Data1 = new HashMap<>();
+                                        Data1.put(createID(), notificationData);
 
-                                        mNotificationDatabase.child(user_id).push().setValue(notificationData).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        NotificationDatabase.collection("notifications").document(user_id).set(Data1,SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
                                             @Override
                                             public void onSuccess(Void aVoid) {
                                                 mCurrent_State = "req_sent";
@@ -169,6 +175,12 @@ public class ProfileActivity extends AppCompatActivity {
                                                 mLoadProcess.hide();
                                             }
                                         });
+//                                        mNotificationDatabase.child(user_id).push().setValue(notificationData).addOnSuccessListener(new OnSuccessListener<Void>() {
+//                                            @Override
+//                                            public void onSuccess(Void aVoid) {
+//
+//                                            }
+//                                        });
 //                                        Toast.makeText(ProfileActivity.this, "Request Sent Successfully", Toast.LENGTH_SHORT).show();
                                     }
                                 });
@@ -309,11 +321,16 @@ public class ProfileActivity extends AppCompatActivity {
         mFriendReqDatabse = FirebaseFirestore.getInstance();
         mFriendsDatabase = FirebaseFirestore.getInstance();
         mNotificationDatabase = FirebaseDatabase.getInstance().getReference().child("notifications");
-//        mNotificationDatabase = FirebaseFirestore.getInstance().collection("notifications").document(c)
+        NotificationDatabase = FirebaseFirestore.getInstance();
 
         //Constants
         current_uid = mCurrentUser.getUid();
         mCurrent_State = "not friends";
 
+    }
+    public int createID(){
+        Date now = new Date();
+        int id = Integer.parseInt(new SimpleDateFormat("ddHHmmss",  Locale.US).format(now));
+        return id;
     }
 }
