@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -29,6 +30,7 @@ public class ProfileActivity extends AppCompatActivity {
     //Firebase
     private DatabaseReference mUserDatabase, mFriendReqDatabse, mFriendsDatabase;
     private DatabaseReference mRootRef;
+    private DatabaseReference mUserRef;
     private FirebaseUser mCurrentUser;
 
 
@@ -187,6 +189,7 @@ public class ProfileActivity extends AppCompatActivity {
         mUserDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(user_id);
         mFriendReqDatabse = FirebaseDatabase.getInstance().getReference().child("Friend_req");
         mFriendsDatabase = FirebaseDatabase.getInstance().getReference().child("Friends");
+        mUserRef = FirebaseDatabase.getInstance().getReference().child("Users").child(mCurrentUser.getUid());
 
         //Constants
         current_uid = mCurrentUser.getUid();
@@ -315,7 +318,31 @@ public class ProfileActivity extends AppCompatActivity {
         }
 
     }
-//    public int createID(){
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        super.onStop();
+
+        if (mCurrentUser != null) {
+
+            mUserRef.child("online").setValue(false);
+        }
+
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        super.onStop();
+
+
+        if (mCurrentUser != null) {
+
+            mUserRef.child("online").setValue(false);
+        }
+    }
+    //    public int createID(){
 //        Date now = new Date();
 //        int id = Integer.parseInt(new SimpleDateFormat("ddHHmmss",  Locale.US).format(now));
 //        return id;

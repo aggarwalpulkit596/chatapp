@@ -109,6 +109,10 @@ public class FriendsFragment extends Fragment {
                         String name = documentSnapshot.child("name").getValue().toString();
                         String image = documentSnapshot.child("thumb_image").getValue().toString();
                         String status = documentSnapshot.child("status").getValue().toString();
+                        if (documentSnapshot.hasChild("online")) {
+                            Boolean userOnline = (Boolean) documentSnapshot.child("online").getValue();
+                            holder.setUserOnline(userOnline);
+                        }
                         holder.bind(name, image, getContext());
 
                     }
@@ -158,6 +162,7 @@ public class FriendsFragment extends Fragment {
 
         public void bind(String name, final String image, final Context context) {
             TextView userNameTextView = mView.findViewById(R.id.user_single_name);
+
             final CircleImageView userImageView = mView.findViewById(R.id.user_image);
 
 
@@ -185,6 +190,16 @@ public class FriendsFragment extends Fragment {
                             }
                         });
 
+        }
+
+        public void setUserOnline(Boolean userOnline) {
+
+            CircleImageView userOnlineView = mView.findViewById(R.id.user_single_online);
+            if (userOnline) {
+                userOnlineView.setVisibility(View.VISIBLE);
+            } else {
+                userOnlineView.setVisibility(View.INVISIBLE);
+            }
         }
     }
 }

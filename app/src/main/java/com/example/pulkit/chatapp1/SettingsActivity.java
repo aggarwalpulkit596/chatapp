@@ -50,12 +50,15 @@ public class SettingsActivity extends AppCompatActivity {
     private FirebaseUser mCurrentUser;
 
 
+
     private CircleImageView mImage;
     private TextView mName;
     private TextView mStatus;
-    private Button mImageBtn,mStatusBtn;
+    private Button mImageBtn, mStatusBtn;
 
     private StorageReference mStorageRef;
+    private DatabaseReference mUserRef;
+
 
     private ProgressDialog mProgessDialog;
 
@@ -74,10 +77,13 @@ public class SettingsActivity extends AppCompatActivity {
         mStatusBtn = findViewById(R.id.setting_status_btn);
 
 
-
         mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
-
         String current_uid = mCurrentUser.getUid();
+
+
+        mUserRef = FirebaseDatabase.getInstance().getReference().child("Users").child(current_uid);
+
+
         mUserDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(current_uid);
         mUserDatabase.keepSynced(true);
         mStorageRef = FirebaseStorage.getInstance().getReference();
@@ -250,7 +256,25 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
-//    public static String random() {
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        if (mCurrentUser != null) {
+
+            mUserRef.child("online").setValue(false);
+        }    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        if (mCurrentUser != null) {
+
+            mUserRef.child("online").setValue(true);
+        }    }
+
+    //    public static String random() {
 //        Random generator = new Random();
 //        StringBuilder randomStringBuilder = new StringBuilder();
 //        int randomLength = generator.nextInt(100);

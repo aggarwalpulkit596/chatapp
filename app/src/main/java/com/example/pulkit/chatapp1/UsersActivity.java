@@ -18,6 +18,9 @@ import com.example.pulkit.chatapp1.Models.Users;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 
 import com.firebase.ui.database.FirebaseRecyclerOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.squareup.picasso.Picasso;
@@ -30,6 +33,9 @@ public class UsersActivity extends AppCompatActivity {
     private Toolbar mToolbar;
 
     private RecyclerView mRecyclerView;
+
+    private DatabaseReference mUserRef;
+    private FirebaseAuth mAuth;
 
 
     private static final String TAG = "debugging";
@@ -47,6 +53,13 @@ public class UsersActivity extends AppCompatActivity {
         getSupportActionBar().setTitle("All Users");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        mAuth = FirebaseAuth.getInstance();
+        if (mAuth.getCurrentUser() != null) {
+
+            mUserRef = FirebaseDatabase.getInstance().getReference().child("Users").child(mAuth.getCurrentUser().getUid());
+
+        }
+
 
         mRecyclerView = findViewById(R.id.users_list);
         mRecyclerView.setHasFixedSize(true);
@@ -59,6 +72,12 @@ public class UsersActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        if (currentUser != null) {
+
+            mUserRef.child("online").setValue(true);
+        }
         attachRecyclerViewAdapter();
 
     }
@@ -109,6 +128,12 @@ public class UsersActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         firebaseRecyclerAdapter.stopListening();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        if (currentUser != null) {
+
+            mUserRef.child("online").setValue(false);
+        }
 
     }
 
