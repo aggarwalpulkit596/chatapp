@@ -1,14 +1,18 @@
-package com.example.pulkit.chatapp1;
+package com.example.pulkit.chatapp1.Adapters;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 
+import com.example.pulkit.chatapp1.Fragments.ChatsFragment;
+import com.example.pulkit.chatapp1.Fragments.FriendsFragment;
+import com.example.pulkit.chatapp1.Fragments.RequestsFragment;
+
 /**
  * Created by Pulkit on 12/23/2017.
  */
 
-class SectionsPagerAdapter extends FragmentPagerAdapter {
+public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
 
     public SectionsPagerAdapter(FragmentManager fm) {

@@ -9,18 +9,15 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.example.pulkit.chatapp1.Models.Users;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 
 import com.firebase.ui.database.FirebaseRecyclerOptions;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.squareup.picasso.Picasso;
@@ -36,6 +33,8 @@ public class UsersActivity extends AppCompatActivity {
 
 
     private static final String TAG = "debugging";
+
+    private FirebaseRecyclerAdapter firebaseRecyclerAdapter;
 
 
     @Override
@@ -72,7 +71,7 @@ public class UsersActivity extends AppCompatActivity {
                 new FirebaseRecyclerOptions.Builder<Users>()
                         .setQuery(query, Users.class)
                         .build();
-        FirebaseRecyclerAdapter<Users, UsersViewHolder> firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<Users, UsersViewHolder>(options) {
+        firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<Users, UsersViewHolder>(options) {
             @Override
             public UsersViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
                 return new UsersViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.user_layout, parent, false));
@@ -101,10 +100,17 @@ public class UsersActivity extends AppCompatActivity {
             }
         };
         mRecyclerView.setAdapter(firebaseRecyclerAdapter);
+        firebaseRecyclerAdapter.startListening();
 
 
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        firebaseRecyclerAdapter.stopListening();
+
+    }
 
     public static class UsersViewHolder extends RecyclerView.ViewHolder {
 

@@ -73,9 +73,11 @@ public class SettingsActivity extends AppCompatActivity {
         mImageBtn = findViewById(R.id.setting_image_btn);
         mStatusBtn = findViewById(R.id.setting_status_btn);
 
-        String current_uid = mCurrentUser.getUid();
+
 
         mCurrentUser = FirebaseAuth.getInstance().getCurrentUser();
+
+        String current_uid = mCurrentUser.getUid();
         mUserDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(current_uid);
         mUserDatabase.keepSynced(true);
         mStorageRef = FirebaseStorage.getInstance().getReference();

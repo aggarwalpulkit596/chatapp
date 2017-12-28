@@ -1,4 +1,4 @@
-package com.example.pulkit.chatapp1;
+package com.example.pulkit.chatapp1.Models;
 
 /**
  * Created by Pulkit on 12/24/2017.

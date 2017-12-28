@@ -7,7 +7,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
-        android:name=".ChatApp1"
+        android:name=".Models.ChatApp1"
         android:allowBackup="true"
         android:icon="@drawable/default_avatar"
         android:label="@string/app_name"

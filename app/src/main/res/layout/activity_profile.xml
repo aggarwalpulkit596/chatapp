@@ -55,7 +55,6 @@
             android:textSize="14sp"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            android:onClick="SendFriendRequest"
             app:layout_constraintTop_toBottomOf="@+id/profile_status" />
 
         <Button
@@ -67,6 +66,7 @@
             android:paddingLeft="20dp"
             android:paddingRight="20dp"
             android:text="Send Friend Request"
+            android:onClick="SendFriendRequest"
             android:textColor="@android:color/white"
             app:layout_constraintHorizontal_bias="0.502"
             app:layout_constraintLeft_toLeftOf="parent"
