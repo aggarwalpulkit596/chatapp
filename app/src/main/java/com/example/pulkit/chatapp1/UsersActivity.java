@@ -34,8 +34,6 @@ public class UsersActivity extends AppCompatActivity {
 
     private RecyclerView mRecyclerView;
 
-    private DatabaseReference mUsersDatabase;
-
 
     private static final String TAG = "debugging";
 
@@ -49,9 +47,6 @@ public class UsersActivity extends AppCompatActivity {
         setSupportActionBar(mToolbar);
         getSupportActionBar().setTitle("All Users");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-
-        mUsersDatabase = FirebaseDatabase.getInstance().getReference().child("Users");
 
 
         mRecyclerView = findViewById(R.id.users_list);
@@ -72,7 +67,7 @@ public class UsersActivity extends AppCompatActivity {
     private void attachRecyclerViewAdapter() {
         Query query = FirebaseDatabase.getInstance()
                 .getReference()
-                .child("users");
+                .child("Users");
         FirebaseRecyclerOptions<Users> options =
                 new FirebaseRecyclerOptions.Builder<Users>()
                         .setQuery(query, Users.class)
