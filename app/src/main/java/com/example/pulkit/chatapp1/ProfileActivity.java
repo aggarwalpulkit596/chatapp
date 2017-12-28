@@ -88,7 +88,7 @@ public class ProfileActivity extends AppCompatActivity {
 
                             String req_type = dataSnapshot.child(user_id).child("request_type").getValue().toString();
 
-                            if (req_type.equals("recieved")) {
+                            if (req_type.equals("received")) {
 
                                 mCurrent_State = "req_recieved";
                                 mProfileReqBtn.setText("Accept Friend Request");
@@ -245,10 +245,10 @@ public class ProfileActivity extends AppCompatActivity {
                     mFriendReqDatabse.child(user_id).child(current_uid).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void aVoid) {
-                            mProfileReqBtn.setEnabled(true);
+
                             mCurrent_State = "not_friends";
                             mProfileReqBtn.setText("Send Friend Request");
-
+                            mProfileReqBtn.setEnabled(true);
                             mDeclineReqBtn.setVisibility(View.INVISIBLE);
                             mDeclineReqBtn.setEnabled(false);
                         }
