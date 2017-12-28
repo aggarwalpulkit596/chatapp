@@ -35,7 +35,7 @@ public class FirebaseMessagingService extends com.google.firebase.messaging.Fire
                         .setContentText(notification_message);
 
         Intent resultIntent = new Intent(click_action);
-        resultIntent.putExtra("from_user_id",from_user_id);
+        resultIntent.putExtra("user_id",from_user_id);
 
         PendingIntent resultPendingIntent =
                 PendingIntent.getActivity(
