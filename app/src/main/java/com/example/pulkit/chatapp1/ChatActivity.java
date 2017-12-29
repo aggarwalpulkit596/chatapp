@@ -4,6 +4,8 @@ import android.content.Context;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
@@ -13,9 +15,12 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.example.pulkit.chatapp1.Adapters.MessageAdapter;
 import com.example.pulkit.chatapp1.Models.GetTime;
+import com.example.pulkit.chatapp1.Models.messages;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -26,7 +31,9 @@ import com.squareup.picasso.Callback;
 import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -47,6 +54,10 @@ public class ChatActivity extends AppCompatActivity {
 
     private ImageButton mSendBtn, mAddbtn;
     private EditText mMsgView;
+
+    private RecyclerView mMessagesList;
+    private final List<messages> MessageList = new ArrayList<>();
+    private MessageAdapter mAdapter;
 
     @Override
 
@@ -92,6 +103,51 @@ public class ChatActivity extends AppCompatActivity {
         mAddbtn = findViewById(R.id.chat_addbtn);
         mSendBtn = findViewById(R.id.chat_sendbtn);
         mMsgView = findViewById(R.id.chat_msgview);
+        mMessagesList = findViewById(R.id.messageslist);
+
+        mAdapter = new MessageAdapter(MessageList);
+
+        mMessagesList.setHasFixedSize(true);
+        mMessagesList.setLayoutManager(new LinearLayoutManager(this));
+        mMessagesList.setAdapter(mAdapter);
+
+        loadMessages();
+
+
+    }
+
+    private void loadMessages() {
+
+        mRootRef.child("messages").child(uid).child(chatUser).addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                messages messages = dataSnapshot.getValue(com.example.pulkit.chatapp1.Models.messages.class);
+
+                MessageList.add(messages);
+                mAdapter.notifyDataSetChanged();
+
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
 
     }
 
@@ -251,10 +307,13 @@ public class ChatActivity extends AppCompatActivity {
             messageMap.put("seen", false);
             messageMap.put("type", "text");
             messageMap.put("time", ServerValue.TIMESTAMP);
+            messageMap.put("from",uid);
 
             Map<String, Object> messageUserMap = new HashMap<>();
             messageUserMap.put(current_user_ref + "/" + push_id, messageMap);
             messageUserMap.put(chat_user_ref + "/" + push_id, messageMap);
+
+            mMsgView.setText("");
 
             mRootRef.updateChildren(messageUserMap, new DatabaseReference.CompletionListener() {
                 @Override
