@@ -22,7 +22,7 @@
         android:weightSum="10">
 
         <ImageButton
-            android:id="@+id/imageButton2"
+            android:id="@+id/chat_addbtn"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1.5"
@@ -31,27 +31,29 @@
             android:padding="10dp"
             app:srcCompat="@drawable/ic_add_black_24dp" />
 
-        <TextView
-            android:id="@+id/textView3"
+        <EditText
+            android:id="@+id/chat_msgview"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="7"
+            android:background="@android:color/white"
+            android:ems="10"
+            android:hint="Enter Message..."
+            android:inputType="textLongMessage"
             android:paddingBottom="10dp"
             android:paddingLeft="10dp"
             android:paddingRight="12dp"
-            android:paddingTop="16dp"
-            android:alpha="0.5"
-            android:background="@android:color/white"
-            android:text="TextView"
-            android:textSize="14sp" />
+            android:paddingTop="14dp"
+            android:textSize="15sp" />
 
         <ImageButton
-            android:id="@+id/imageButton"
+            android:id="@+id/chat_sendbtn"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1.5"
             android:alpha="0.5"
             android:background="@android:color/white"
+            android:onClick="SendMessage"
             android:padding="10dp"
             app:srcCompat="@drawable/ic_send_black_24dp" />
 

@@ -5,9 +5,12 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.example.pulkit.chatapp1.Models.GetTime;
@@ -23,6 +26,9 @@ import com.squareup.picasso.Callback;
 import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class ChatActivity extends AppCompatActivity {
@@ -32,9 +38,15 @@ public class ChatActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
 
     private DatabaseReference mRootRef;
+    private FirebaseUser currentUser;
 
     private TextView mUserName, mUserSeen;
     private CircleImageView mUserImage;
+
+    private String uid;
+
+    private ImageButton mSendBtn, mAddbtn;
+    private EditText mMsgView;
 
     @Override
 
@@ -45,10 +57,8 @@ public class ChatActivity extends AppCompatActivity {
         chatUser = getIntent().getStringExtra("user_id");
         userName = getIntent().getStringExtra("name");
 
-
         mToolbar = findViewById(R.id.chatAppBar);
         setSupportActionBar(mToolbar);
-
 
         ActionBar actionBar = getSupportActionBar();
 
@@ -56,21 +66,32 @@ public class ChatActivity extends AppCompatActivity {
         actionBar.setDisplayShowCustomEnabled(true);
         actionBar.setDisplayShowTitleEnabled(false);
 
-        mRootRef = FirebaseDatabase.getInstance().getReference();
-        mAuth = FirebaseAuth.getInstance();
-
-
-//        getSupportActionBar().setTitle(userName);
 
         LayoutInflater layoutInflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View action_bar = layoutInflater.inflate(R.layout.chat_bar, null);
 
         actionBar.setCustomView(action_bar);
 
+        bindingViews();
+
+
+    }
+
+    private void bindingViews() {
+        mAuth = FirebaseAuth.getInstance();
+
+        currentUser = mAuth.getCurrentUser();
+
+        uid = currentUser.getUid();
+
+        mRootRef = FirebaseDatabase.getInstance().getReference();
 
         mUserImage = findViewById(R.id.chatBarImageView);
         mUserName = findViewById(R.id.chatBarUserName);
         mUserSeen = findViewById(R.id.chatBarUserOnline);
+        mAddbtn = findViewById(R.id.chat_addbtn);
+        mSendBtn = findViewById(R.id.chat_sendbtn);
+        mMsgView = findViewById(R.id.chat_msgview);
 
     }
 
@@ -87,6 +108,45 @@ public class ChatActivity extends AppCompatActivity {
         }
         settingview();
 
+        chatFuctions();
+
+
+    }
+
+    private void chatFuctions() {
+
+        mRootRef.child("chat").child(uid).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.hasChild(chatUser)) {
+
+                    Map<String, Object> chatAddMap = new HashMap<>();
+                    chatAddMap.put("seen", false);
+                    chatAddMap.put("timestamp", ServerValue.TIMESTAMP);
+
+                    Map<String, Object> chatUserMap = new HashMap<>();
+                    chatUserMap.put("chat/" + uid + "/" + chatUser, chatAddMap);
+                    chatUserMap.put("chat/" + chatUser + "/" + uid, chatAddMap);
+
+                    mRootRef.updateChildren(chatUserMap, new DatabaseReference.CompletionListener() {
+                        @Override
+                        public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+
+                            if (databaseError != null) {
+                                Log.i("TAG", "onComplete: " + databaseError.getMessage().toString());
+                            }
+
+                        }
+                    });
+
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
 
     }
 
@@ -109,7 +169,7 @@ public class ChatActivity extends AppCompatActivity {
                     GetTime getTime = new GetTime();
                     long time = Long.parseLong(userOnline);
 
-                    String lastseen = getTime.getTimeAgo(time,getApplicationContext());
+                    String lastseen = getTime.getTimeAgo(time, getApplicationContext());
 
                     mUserSeen.setText("last seen " + lastseen);
                 }
@@ -164,6 +224,49 @@ public class ChatActivity extends AppCompatActivity {
             mRootRef.child("Users").child(mAuth.getCurrentUser().getUid()).child("online").setValue(ServerValue.TIMESTAMP);
 
         }
+
+    }
+
+    public void SendMessage(View view) {
+
+        getMessage();
+    }
+
+    private void getMessage() {
+
+        String message = mMsgView.getText().toString();
+
+        if (!TextUtils.isEmpty(message)) {
+
+            String current_user_ref = "messages/" + uid + "/" + chatUser;
+            String chat_user_ref = "messages/" + chatUser + "/" + uid;
+
+            DatabaseReference userMessagePush = mRootRef.child("messages")
+                    .child(uid).child(chatUser).push();
+
+            String push_id = userMessagePush.getKey();
+
+            Map<String, Object> messageMap = new HashMap<>();
+            messageMap.put("message", message);
+            messageMap.put("seen", false);
+            messageMap.put("type", "text");
+            messageMap.put("time", ServerValue.TIMESTAMP);
+
+            Map<String, Object> messageUserMap = new HashMap<>();
+            messageUserMap.put(current_user_ref + "/" + push_id, messageMap);
+            messageUserMap.put(chat_user_ref + "/" + push_id, messageMap);
+
+            mRootRef.updateChildren(messageUserMap, new DatabaseReference.CompletionListener() {
+                @Override
+                public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                    if (databaseError != null) {
+                        Log.i("TAG", "onComplete: " + databaseError.getMessage().toString());
+                    }
+                }
+            });
+
+        }
+
 
     }
 }
