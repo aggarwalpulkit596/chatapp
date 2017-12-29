@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 
+import com.example.pulkit.chatapp1.Models.GetTime;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -104,7 +105,13 @@ public class ChatActivity extends AppCompatActivity {
                 if (userOnline.equals("true")) {
                     mUserSeen.setText("Online");
                 } else {
-                    mUserSeen.setText(userOnline);
+
+                    GetTime getTime = new GetTime();
+                    long time = Long.parseLong(userOnline);
+
+                    String lastseen = getTime.getTimeAgo(time,getApplicationContext());
+
+                    mUserSeen.setText("last seen " + lastseen);
                 }
                 if (!userImage.equals("default"))
                     Picasso.with(ChatActivity.this)
