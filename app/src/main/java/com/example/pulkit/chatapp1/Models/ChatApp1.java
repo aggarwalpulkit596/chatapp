@@ -51,7 +51,9 @@ public class ChatApp1 extends Application {
 
                     if (dataSnapshot != null) {
 
-                        mUserDatabase.child("online").onDisconnect().setValue(true);
+                        mUserDatabase.child("online").onDisconnect().setValue(ServerValue.TIMESTAMP);
+
+
 
                     }
 

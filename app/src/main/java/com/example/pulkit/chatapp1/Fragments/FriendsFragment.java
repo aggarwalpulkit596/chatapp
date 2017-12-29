@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.example.pulkit.chatapp1.ChatActivity;
 import com.example.pulkit.chatapp1.Models.Friends;
 import com.example.pulkit.chatapp1.Models.Users;
 import com.example.pulkit.chatapp1.ProfileActivity;
@@ -101,19 +102,21 @@ public class FriendsFragment extends Fragment {
                 holder.setDate(model.getDate());
 
                 final String uid = getRef(position).getKey();
+                final String[] name = new String[1];
+                final String[] image = new String[1];
 
                 mUsersDatabase.child(uid).addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot documentSnapshot) {
 
-                        String name = documentSnapshot.child("name").getValue().toString();
-                        String image = documentSnapshot.child("thumb_image").getValue().toString();
-                        String status = documentSnapshot.child("status").getValue().toString();
+                        name[0] = documentSnapshot.child("name").getValue().toString();
+                        image[0] = documentSnapshot.child("thumb_image").getValue().toString();
+
                         if (documentSnapshot.hasChild("online")) {
-                            Boolean userOnline = (Boolean) documentSnapshot.child("online").getValue();
+                            String userOnline =  documentSnapshot.child("online").getValue().toString();
                             holder.setUserOnline(userOnline);
                         }
-                        holder.bind(name, image, getContext());
+                        holder.bind(name[0], image[0], getContext());
 
                     }
 
@@ -128,9 +131,11 @@ public class FriendsFragment extends Fragment {
                     public void onClick(View view) {
 
 
-                        Intent profileintent = new Intent(getContext(), ProfileActivity.class);
-                        profileintent.putExtra("user_id", uid);
-                        startActivity(profileintent);
+                        Intent chatintent = new Intent(getContext(), ChatActivity.class);
+                        chatintent.putExtra("user_id", uid);
+                        chatintent.putExtra("name", name[0]);
+                        chatintent.putExtra("image", image[0]);
+                        startActivity(chatintent);
 
 
                     }
@@ -192,10 +197,10 @@ public class FriendsFragment extends Fragment {
 
         }
 
-        public void setUserOnline(Boolean userOnline) {
+        public void setUserOnline(String userOnline) {
 
             CircleImageView userOnlineView = mView.findViewById(R.id.user_single_online);
-            if (userOnline) {
+            if (userOnline.equals("true")) {
                 userOnlineView.setVisibility(View.VISIBLE);
             } else {
                 userOnlineView.setVisibility(View.INVISIBLE);

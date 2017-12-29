@@ -17,6 +17,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
@@ -326,7 +327,7 @@ public class ProfileActivity extends AppCompatActivity {
 
         if (mCurrentUser != null) {
 
-            mUserRef.child("online").setValue(false);
+            mUserRef.child("online").setValue("true");
         }
 
     }
@@ -339,7 +340,7 @@ public class ProfileActivity extends AppCompatActivity {
 
         if (mCurrentUser != null) {
 
-            mUserRef.child("online").setValue(false);
+            mUserRef.child("online").setValue(ServerValue.TIMESTAMP);
         }
     }
     //    public int createID(){

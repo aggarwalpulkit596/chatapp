@@ -23,6 +23,8 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ServerValue;
+import com.google.firebase.firestore.ServerTimestamp;
 import com.squareup.picasso.Picasso;
 
 
@@ -76,7 +78,7 @@ public class UsersActivity extends AppCompatActivity {
 
         if (currentUser != null) {
 
-            mUserRef.child("online").setValue(true);
+            mUserRef.child("online").setValue("true");
         }
         attachRecyclerViewAdapter();
 
@@ -132,7 +134,7 @@ public class UsersActivity extends AppCompatActivity {
 
         if (currentUser != null) {
 
-            mUserRef.child("online").setValue(false);
+            mUserRef.child("online").setValue(ServerValue.TIMESTAMP);
         }
 
     }
