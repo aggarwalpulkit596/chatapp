@@ -175,6 +175,18 @@ public class UsersActivity extends AppCompatActivity {
 
         }
     }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        if (currentUser != null) {
+
+            mUserRef.child("online").setValue("true");
+
+        }
+
+    }
 }
 
 
