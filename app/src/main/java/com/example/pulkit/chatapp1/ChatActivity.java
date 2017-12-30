@@ -1,6 +1,7 @@
 package com.example.pulkit.chatapp1;
 
 import android.content.Context;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -8,6 +9,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,6 +27,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Callback;
@@ -56,8 +59,13 @@ public class ChatActivity extends AppCompatActivity {
     private EditText mMsgView;
 
     private RecyclerView mMessagesList;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
     private final List<messages> MessageList = new ArrayList<>();
     private MessageAdapter mAdapter;
+
+    private static final int TOTAL_ITEM_LOAD = 10;
+    private int mCurrentPage = 1;
+
 
     @Override
 
@@ -85,6 +93,17 @@ public class ChatActivity extends AppCompatActivity {
 
         bindingViews();
 
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+
+                mCurrentPage++;
+
+                loadmoreMessages();
+
+            }
+        });
+
 
     }
 
@@ -104,8 +123,9 @@ public class ChatActivity extends AppCompatActivity {
         mSendBtn = findViewById(R.id.chat_sendbtn);
         mMsgView = findViewById(R.id.chat_msgview);
         mMessagesList = findViewById(R.id.messageslist);
+        mSwipeRefreshLayout = findViewById(R.id.swipe_message_layout);
 
-        mAdapter = new MessageAdapter(MessageList);
+        mAdapter = new MessageAdapter(MessageList,getApplicationContext());
 
         mMessagesList.setHasFixedSize(true);
         mMessagesList.setLayoutManager(new LinearLayoutManager(this));
@@ -116,15 +136,62 @@ public class ChatActivity extends AppCompatActivity {
 
     }
 
-    private void loadMessages() {
+    private void loadmoreMessages() {
+        DatabaseReference messageRef = mRootRef.child("messages").child(uid).child(chatUser);
 
-        mRootRef.child("messages").child(uid).child(chatUser).addChildEventListener(new ChildEventListener() {
+        Query messagequery = messageRef.orderByKey().endAt("dssdd");
+
+        messagequery.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 messages messages = dataSnapshot.getValue(com.example.pulkit.chatapp1.Models.messages.class);
 
                 MessageList.add(messages);
                 mAdapter.notifyDataSetChanged();
+                mMessagesList.scrollToPosition(MessageList.size() - 1);
+
+                mSwipeRefreshLayout.setRefreshing(false);
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void loadMessages() {
+
+
+        DatabaseReference messageRef = mRootRef.child("messages").child(uid).child(chatUser);
+
+        Query messagequery = messageRef.limitToLast(mCurrentPage * TOTAL_ITEM_LOAD);
+
+        messagequery.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                messages messages = dataSnapshot.getValue(com.example.pulkit.chatapp1.Models.messages.class);
+
+                MessageList.add(messages);
+                mAdapter.notifyDataSetChanged();
+                mMessagesList.scrollToPosition(MessageList.size() - 1);
+
+                mSwipeRefreshLayout.setRefreshing(false);
 
             }
 
@@ -218,6 +285,7 @@ public class ChatActivity extends AppCompatActivity {
                 userImage = dataSnapshot.child("image").getValue().toString();
                 userOnline = dataSnapshot.child("online").getValue().toString();
 
+
                 if (userOnline.equals("true")) {
                     mUserSeen.setText("Online");
                 } else {
@@ -226,6 +294,8 @@ public class ChatActivity extends AppCompatActivity {
                     long time = Long.parseLong(userOnline);
 
                     String lastseen = getTime.getTimeAgo(time, getApplicationContext());
+
+
 
                     mUserSeen.setText("last seen " + lastseen);
                 }
@@ -307,7 +377,7 @@ public class ChatActivity extends AppCompatActivity {
             messageMap.put("seen", false);
             messageMap.put("type", "text");
             messageMap.put("time", ServerValue.TIMESTAMP);
-            messageMap.put("from",uid);
+            messageMap.put("from", uid);
 
             Map<String, Object> messageUserMap = new HashMap<>();
             messageUserMap.put(current_user_ref + "/" + push_id, messageMap);
