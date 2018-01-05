@@ -63,7 +63,6 @@ public class SettingsActivity extends AppCompatActivity {
 
     private ProgressDialog mProgessDialog;
 
-    private static final int GALLERY_PICK = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -154,11 +153,7 @@ public class SettingsActivity extends AppCompatActivity {
                         .setGuidelines(CropImageView.Guidelines.ON)
                         .setMinCropWindowSize(500, 500)
                         .start(SettingsActivity.this);
-//                Intent galleryIntent = new Intent();
-//                galleryIntent.setType("image/*");
-//                galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
-//
-//                startActivityForResult(Intent.createChooser(galleryIntent,"SELECT IMAGE"),GALLERY_PICK);
+
             }
         });
 
@@ -275,15 +270,5 @@ public class SettingsActivity extends AppCompatActivity {
             mUserRef.child("online").setValue("true");
         }    }
 
-    //    public static String random() {
-//        Random generator = new Random();
-//        StringBuilder randomStringBuilder = new StringBuilder();
-//        int randomLength = generator.nextInt(100);
-//        char tempChar;
-//        for (int i = 0; i < randomLength; i++) {
-//            tempChar = (char) (generator.nextInt(96) + 32);
-//            randomStringBuilder.append(tempChar);
-//        }
-//        return randomStringBuilder.toString();
-//    }
+
 }

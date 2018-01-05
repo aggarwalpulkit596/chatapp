@@ -1,10 +1,14 @@
 package com.example.pulkit.chatapp1;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -20,6 +24,8 @@ import android.widget.TextView;
 import com.example.pulkit.chatapp1.Adapters.MessageAdapter;
 import com.example.pulkit.chatapp1.Models.GetTime;
 import com.example.pulkit.chatapp1.Models.messages;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -30,6 +36,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
@@ -62,9 +71,22 @@ public class ChatActivity extends AppCompatActivity {
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private final List<messages> MessageList = new ArrayList<>();
     private MessageAdapter mAdapter;
+    private LinearLayoutManager mLinearLayout;
 
     private static final int TOTAL_ITEM_LOAD = 10;
     private int mCurrentPage = 1;
+
+
+    //new solution
+    private int itemPos = 0;
+    private String mLastKey = "";
+    private String mPrevKey = "";
+
+    // Storage Firebase
+    private StorageReference mImageStorage;
+
+
+    private static final int GALLERY_PICK = 1;
 
 
     @Override
@@ -93,15 +115,19 @@ public class ChatActivity extends AppCompatActivity {
 
         bindingViews();
 
+        loadMessages();
+
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
 
+
                 mCurrentPage++;
+                itemPos = 0;
 
                 loadmoreMessages();
-
             }
+
         });
 
 
@@ -115,6 +141,8 @@ public class ChatActivity extends AppCompatActivity {
         uid = currentUser.getUid();
 
         mRootRef = FirebaseDatabase.getInstance().getReference();
+        mImageStorage = FirebaseStorage.getInstance().getReference();
+
 
         mUserImage = findViewById(R.id.chatBarImageView);
         mUserName = findViewById(R.id.chatBarUserName);
@@ -125,13 +153,13 @@ public class ChatActivity extends AppCompatActivity {
         mMessagesList = findViewById(R.id.messageslist);
         mSwipeRefreshLayout = findViewById(R.id.swipe_message_layout);
 
-        mAdapter = new MessageAdapter(MessageList,getApplicationContext());
+        mAdapter = new MessageAdapter(MessageList, getApplicationContext());
 
         mMessagesList.setHasFixedSize(true);
-        mMessagesList.setLayoutManager(new LinearLayoutManager(this));
+        mLinearLayout = new LinearLayoutManager(this);
+        mMessagesList.setLayoutManager(mLinearLayout);
         mMessagesList.setAdapter(mAdapter);
 
-        loadMessages();
 
 
     }
@@ -139,18 +167,36 @@ public class ChatActivity extends AppCompatActivity {
     private void loadmoreMessages() {
         DatabaseReference messageRef = mRootRef.child("messages").child(uid).child(chatUser);
 
-        Query messagequery = messageRef.orderByKey().endAt("dssdd");
+        Query messagequery = messageRef.orderByKey().endAt(mLastKey).limitToFirst(10);
 
         messagequery.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 messages messages = dataSnapshot.getValue(com.example.pulkit.chatapp1.Models.messages.class);
 
-                MessageList.add(messages);
+                String messageKey = dataSnapshot.getKey();
+
+                if(!mPrevKey.equals(messageKey)){
+
+                    MessageList.add(itemPos++, messages);
+
+                }else{
+
+                    mPrevKey = mLastKey;
+
+                }
+
+                if (itemPos == 1) {
+                    mLastKey = messageKey;
+                }
+
                 mAdapter.notifyDataSetChanged();
-                mMessagesList.scrollToPosition(MessageList.size() - 1);
 
                 mSwipeRefreshLayout.setRefreshing(false);
+
+                mLinearLayout.scrollToPositionWithOffset(10,0);
+
+
             }
 
             @Override
@@ -186,6 +232,13 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 messages messages = dataSnapshot.getValue(com.example.pulkit.chatapp1.Models.messages.class);
+
+                itemPos++;
+
+                if (itemPos == 1) {
+                    mLastKey = dataSnapshot.getKey();
+                    mPrevKey = mLastKey;
+                }
 
                 MessageList.add(messages);
                 mAdapter.notifyDataSetChanged();
@@ -296,7 +349,6 @@ public class ChatActivity extends AppCompatActivity {
                     String lastseen = getTime.getTimeAgo(time, getApplicationContext());
 
 
-
                     mUserSeen.setText("last seen " + lastseen);
                 }
                 if (!userImage.equals("default"))
@@ -397,5 +449,77 @@ public class ChatActivity extends AppCompatActivity {
         }
 
 
+    }
+
+    public void sendImage(View view) {
+        Intent galleryIntent = new Intent();
+                galleryIntent.setType("image/*");
+                galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
+
+                startActivityForResult(Intent.createChooser(galleryIntent,"SELECT IMAGE"),GALLERY_PICK);
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == GALLERY_PICK && resultCode == RESULT_OK){
+
+            Uri imageUri = data.getData();
+
+            final String current_user_ref = "messages/" + uid + "/" + chatUser;
+            final String chat_user_ref = "messages/" + chatUser + "/" + uid;
+
+            DatabaseReference user_message_push = mRootRef.child("messages")
+                    .child(uid).child(chatUser).push();
+
+            final String push_id = user_message_push.getKey();
+
+
+            StorageReference filepath = mImageStorage.child("message_images").child( push_id + ".jpg");
+
+            filepath.putFile(imageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+
+                    if(task.isSuccessful()){
+
+                        String download_url = task.getResult().getDownloadUrl().toString();
+
+
+                        Map messageMap = new HashMap();
+                        messageMap.put("message", download_url);
+                        messageMap.put("seen", false);
+                        messageMap.put("type", "image");
+                        messageMap.put("time", ServerValue.TIMESTAMP);
+                        messageMap.put("from", uid);
+
+                        Map messageUserMap = new HashMap();
+                        messageUserMap.put(current_user_ref + "/" + push_id, messageMap);
+                        messageUserMap.put(chat_user_ref + "/" + push_id, messageMap);
+
+                        mMsgView.setText("");
+
+                        mRootRef.updateChildren(messageUserMap, new DatabaseReference.CompletionListener() {
+                            @Override
+                            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+
+                                if(databaseError != null){
+
+                                    Log.d("CHAT_LOG", databaseError.getMessage().toString());
+
+                                }
+
+                            }
+                        });
+
+
+                    }
+
+                }
+            });
+
+        }
     }
 }
