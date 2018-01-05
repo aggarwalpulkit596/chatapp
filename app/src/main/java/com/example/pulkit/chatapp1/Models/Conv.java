@@ -1,4 +1,4 @@
-package com.example.pulkit.chatapp1.Fragments;
+package com.example.pulkit.chatapp1.Models;
 
 /**
  * Created by pulkit-mac on 06/01/18.

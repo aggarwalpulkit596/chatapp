@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -15,8 +16,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.pulkit.chatapp1.ChatActivity;
+import com.example.pulkit.chatapp1.Models.Conv;
 import com.example.pulkit.chatapp1.R;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -59,7 +62,9 @@ public class ChatsFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
 
-        mConvList = (RecyclerView) mMainView.findViewById(R.id.conv_list);
+        mMainView = inflater.inflate(R.layout.fragment_chats, container, false);
+
+        mConvList = mMainView.findViewById(R.id.conv_list);
         mAuth = FirebaseAuth.getInstance();
 
         mCurrent_user_id = mAuth.getCurrentUser().getUid();
@@ -89,19 +94,24 @@ public class ChatsFragment extends Fragment {
         super.onStart();
 
         Query conversationQuery = mConvDatabase.orderByChild("timestamp");
+//        Query query = FirebaseDatabase.getInstance()
+//                .getReference()
+//                .child("Users");
+        FirebaseRecyclerOptions<Conv> options =
+                new FirebaseRecyclerOptions.Builder<Conv>()
+                        .setQuery(conversationQuery, Conv.class)
+                        .build();
 
-        FirebaseRecyclerAdapter<Conv, ConvViewHolder> firebaseConvAdapter = new FirebaseRecyclerAdapter<Conv, ConvViewHolder>(
-                Conv.class,
-                R.layout.users_single_layout,
-                ConvViewHolder.class,
-                conversationQuery
-        ) {
+        FirebaseRecyclerAdapter firebaseConvAdapter = new FirebaseRecyclerAdapter<Conv, ConvViewHolder>(options) {
             @Override
-            protected void populateViewHolder(final ConvViewHolder convViewHolder, final Conv conv, int i) {
+            public ConvViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                return new ConvViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.user_layout, parent, false));
+            }
 
+            @Override
+            protected void onBindViewHolder(@NonNull final ConvViewHolder convViewHolder, int position, @NonNull final Conv conv) {
 
-
-                final String list_user_id = getRef(i).getKey();
+                final String list_user_id = getRef(position).getKey();
 
                 Query lastMessageQuery = mMessageDatabase.child(list_user_id).limitToLast(1);
 
@@ -143,7 +153,7 @@ public class ChatsFragment extends Fragment {
                         final String userName = dataSnapshot.child("name").getValue().toString();
                         String userThumb = dataSnapshot.child("thumb_image").getValue().toString();
 
-                        if(dataSnapshot.hasChild("online")) {
+                        if (dataSnapshot.hasChild("online")) {
 
                             String userOnline = dataSnapshot.child("online").getValue().toString();
                             convViewHolder.setUserOnline(userOnline);
@@ -176,7 +186,9 @@ public class ChatsFragment extends Fragment {
                 });
 
             }
+
         };
+
 
         mConvList.setAdapter(firebaseConvAdapter);
 
@@ -193,12 +205,12 @@ public class ChatsFragment extends Fragment {
 
         }
 
-        public void setMessage(String message, boolean isSeen){
+        public void setMessage(String message, boolean isSeen) {
 
             TextView userStatusView = (TextView) mView.findViewById(R.id.user_single_status);
             userStatusView.setText(message);
 
-            if(!isSeen){
+            if (!isSeen) {
                 userStatusView.setTypeface(userStatusView.getTypeface(), Typeface.BOLD);
             } else {
                 userStatusView.setTypeface(userStatusView.getTypeface(), Typeface.NORMAL);
@@ -206,14 +218,14 @@ public class ChatsFragment extends Fragment {
 
         }
 
-        public void setName(String name){
+        public void setName(String name) {
 
             TextView userNameView = (TextView) mView.findViewById(R.id.user_single_name);
             userNameView.setText(name);
 
         }
 
-        public void setUserImage(String thumb_image, Context ctx){
+        public void setUserImage(String thumb_image, Context ctx) {
 
             CircleImageView userImageView = (CircleImageView) mView.findViewById(R.id.user_image);
             Picasso.with(ctx).load(thumb_image).placeholder(R.drawable.default_avatar).into(userImageView);
@@ -225,7 +237,7 @@ public class ChatsFragment extends Fragment {
 
             ImageView userOnlineView = (ImageView) mView.findViewById(R.id.user_single_online);
 
-            if(online_status.equals("true")){
+            if (online_status.equals("true")) {
 
                 userOnlineView.setVisibility(View.VISIBLE);
 
@@ -239,7 +251,6 @@ public class ChatsFragment extends Fragment {
 
 
     }
-
 
 
 }
