@@ -27,6 +27,9 @@ public class MainActivity extends AppCompatActivity {
 
     private TabLayout mTabLayout;
 
+    FirebaseUser currentUser;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,9 +37,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mAuth = FirebaseAuth.getInstance();
-        if (mAuth.getCurrentUser() != null) {
+        currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
 
-            mUserRef = FirebaseDatabase.getInstance().getReference().child("Users").child(mAuth.getCurrentUser().getUid());
+            mUserRef = FirebaseDatabase.getInstance().getReference().child("Users").child(currentUser.getUid());
 
         }
 
@@ -69,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
         super.onOptionsItemSelected(item);
 
         if (item.getItemId() == R.id.main_logout_btn) {
+            mUserRef.child("online").setValue(ServerValue.TIMESTAMP);
             FirebaseAuth.getInstance().signOut();
             startActivity(new Intent(this, MainActivity.class));
         }
@@ -88,8 +93,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onStart() {
         super.onStart();
-        // Check if user is signed in (non-null) and update UI accordingly.
-        FirebaseUser currentUser = mAuth.getCurrentUser();
         //  updateUI(currentUser);
         if (currentUser == null) {
             startActivity(new Intent(MainActivity.this, StartActivity.class));
@@ -101,13 +104,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
 
-        if (currentUser != null) {
-
-            mUserRef.child("online").setValue(ServerValue.TIMESTAMP);
-
-        }
+//        if (currentUser != null) {
+//
+//            mUserRef.child("online").setValue(ServerValue.TIMESTAMP);
+//
+//        }
 
     }
 }

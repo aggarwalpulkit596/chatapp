@@ -45,10 +45,11 @@
         android:layout_marginTop="28dp"
         android:paddingEnd="20dp"
         android:paddingStart="20dp"
-        app:passwordToggleEnabled="true"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/login_layout1">
+        app:layout_constraintTop_toBottomOf="@+id/login_layout1"
+        app:passwordToggleEnabled="true">
 
         <EditText
             android:id="@+id/login_password"

@@ -251,15 +251,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
         }
     }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-
-        if (mCurrentUser != null) {
-
-            mUserRef.child("online").setValue(ServerValue.TIMESTAMP);
-        }    }
+    
 
     @Override
     protected void onStart() {

@@ -323,7 +323,6 @@ public class ProfileActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        super.onStop();
 
         if (mCurrentUser != null) {
 
@@ -335,17 +334,6 @@ public class ProfileActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        super.onStop();
-
-
-        if (mCurrentUser != null) {
-
-            mUserRef.child("online").setValue(ServerValue.TIMESTAMP);
-        }
     }
-    //    public int createID(){
-//        Date now = new Date();
-//        int id = Integer.parseInt(new SimpleDateFormat("ddHHmmss",  Locale.US).format(now));
-//        return id;
-//    }
+
 }

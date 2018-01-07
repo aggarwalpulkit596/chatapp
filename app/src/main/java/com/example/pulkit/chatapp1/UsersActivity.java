@@ -130,12 +130,12 @@ public class UsersActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         firebaseRecyclerAdapter.stopListening();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-
-        if (currentUser != null) {
-
-            mUserRef.child("online").setValue(ServerValue.TIMESTAMP);
-        }
+//        FirebaseUser currentUser = mAuth.getCurrentUser();
+//
+//        if (currentUser != null) {
+//
+//            mUserRef.child("online").setValue(ServerValue.TIMESTAMP);
+//        }
 
     }
 
@@ -178,13 +178,13 @@ public class UsersActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-
-        if (currentUser != null) {
-
-            mUserRef.child("online").setValue("true");
-
-        }
+//        FirebaseUser currentUser = mAuth.getCurrentUser();
+//
+//        if (currentUser != null) {
+//
+//            mUserRef.child("online").setValue("true");
+//
+//        }
 
     }
 }

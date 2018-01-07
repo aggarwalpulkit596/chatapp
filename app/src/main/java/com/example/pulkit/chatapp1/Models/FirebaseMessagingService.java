@@ -4,6 +4,8 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
 
@@ -27,15 +29,17 @@ public class FirebaseMessagingService extends com.google.firebase.messaging.Fire
 
         String from_user_id = remoteMessage.getData().get("from_user_id");
 
+        Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(this)
                         .setSmallIcon(R.drawable.default_avatar)
                         .setContentTitle(notification_title)
-                        .setContentText(notification_message);
+                        .setContentText(notification_message)
+                        .setSound(defaultSoundUri);
 
         Intent resultIntent = new Intent(click_action);
-        resultIntent.putExtra("user_id",from_user_id);
+        resultIntent.putExtra("user_id", from_user_id);
 
         PendingIntent resultPendingIntent =
                 PendingIntent.getActivity(
@@ -47,9 +51,8 @@ public class FirebaseMessagingService extends com.google.firebase.messaging.Fire
         mBuilder.setContentIntent(resultPendingIntent);
 
 
-
         int mNotificationId = (int) System.currentTimeMillis();
-        NotificationManager mNotifyMgr =(NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        NotificationManager mNotifyMgr = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         mNotifyMgr.notify(mNotificationId, mBuilder.build());
     }
 }
